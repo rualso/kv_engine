@@ -334,6 +334,16 @@
             "descr": "Number of seconds between expiry pager runs.",
             "type": "size_t"
         },
+        "expiry_host": {
+            "default": "",
+            "descr": "Expiration UDP messages are sent to expiry_host:expiry_port, if both are defined.",
+            "type": "std::string"
+        },
+        "expiry_port": {
+            "default": "11300",
+            "descr": "Expiration UDP messages are sent to expiry_host:expiry_port, if both are defined.",
+            "type": "size_t"
+        },
         "exp_pager_initial_run_time": {
             "default": "-1",
             "descr": "Hour in GMT time when expiry pager can be scheduled for initial run",
@@ -354,6 +364,10 @@
             "descr": "True if memcached flush API is enabled",
             "type": "bool"
         },
+	"flusher_min_sleep_time": {
+	    "default": "0.00",
+	    "type": "float"
+	},
         "getl_default_timeout": {
             "default": "15",
             "descr": "The default timeout for a getl lock in (s)",

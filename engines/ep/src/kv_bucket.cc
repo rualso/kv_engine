@@ -121,6 +121,8 @@ public:
             store.setCompactionWriteQueueCap(value);
         } else if (key.compare("exp_pager_stime") == 0) {
             store.setExpiryPagerSleeptime(value);
+        } else if (key.compare("expiry_port") == 0) {
+            store.setExpiryPort(value);
         } else if (key.compare("alog_sleep_time") == 0) {
             store.setAccessScannerSleeptime(value, false);
         } else if (key.compare("alog_task_time") == 0) {
@@ -175,6 +177,18 @@ public:
             store.setBfiltersResidencyThreshold(value);
         } else if (key.compare("dcp_min_compression_ratio") == 0) {
             store.getEPEngine().updateDcpMinCompressionRatio(value);
+        } else if (key.compare("flusher_min_sleep_time") == 0) {
+            store.setFlusherMinSleepTime(value);
+        }
+    }
+
+    virtual void stringValueChanged(const std::string &key, const char* value) {
+        if (key.compare("expiry_host") == 0) {
+            store.setExpiryHost(value);
+        } else {
+            LOG(EXTENSION_LOG_WARNING,
+                "Failed to change value for unknown variable, %s\n",
+                key.c_str());
         }
     }
 
@@ -630,6 +644,7 @@ void KVBucket::deleteExpiredItem(Item& it,
         // the VB can't switch state whilst we're processing
         ReaderLockHolder rlh(vb->getStateLock());
         if (vb->getState() == vbucket_state_active) {
+            expiryPager.channel.sendNotification(engine.getName(), it);
             vb->deleteExpiredItem(it, startTime, source);
         }
     }
@@ -2594,6 +2609,27 @@ void KVBucket::disableExpiryPager() {
     }
 }
 
+void KVBucket::setExpiryHost(std::string val) {
+    LockHolder lh(expiryPager.mutex);
+
+    expiryPager.host = val;
+    expiryPager.channel.open(expiryPager.host, expiryPager.port);
+}
+
+void KVBucket::setExpiryPort(size_t val) {
+    LockHolder lh(expiryPager.mutex);
+
+    expiryPager.port = static_cast<int>(val);
+    expiryPager.channel.open(expiryPager.host, expiryPager.port);
+}
+
+void KVBucket::setFlusherMinSleepTime(float val) {
+    for (uint16_t i = 0; i < vbMap.shards.size(); ++i) {
+        Flusher *flusher = vbMap.shards[i]->getFlusher();
+        flusher->setMinSleepTime(val);
+    }
+}
+
 void KVBucket::wakeUpExpiryPager() {
     LockHolder lh(expiryPager.mutex);
     if (expiryPager.enabled) {
@@ -3002,6 +3038,23 @@ void KVBucket::initializeExpiryPager(Configuration& config) {
                                    new EPStoreValueChangeListener(*this));
     config.addValueChangedListener("exp_pager_initial_run_time",
                                    new EPStoreValueChangeListener(*this));
+
+    std::string expiryHost = config.getExpiryHost();
+    setExpiryHost(expiryHost);
+    config.addValueChangedListener("expiry_host",
+                                   new EPStoreValueChangeListener(*this));
+
+    size_t expiryPort = config.getExpiryPort();
+    setExpiryPort(expiryPort);
+    config.addValueChangedListener("expiry_port",
+                                   new EPStoreValueChangeListener(*this));
+
+
+    float flusherMinSleepTime = config.getFlusherMinSleepTime();
+    setFlusherMinSleepTime(flusherMinSleepTime);
+    config.addValueChangedListener("flusher_min_sleep_time",
+                                   new EPStoreValueChangeListener(*this));
+
 }
 
 cb::engine_error KVBucket::setCollections(cb::const_char_buffer json) {

@@ -120,3 +120,8 @@ memcached like this:
 |                                |        | resolution to use                          |
 | item_eviction_policy           | string | Item eviction policy used by the item      |
 |                                |        | pager (value_only or full_eviction)        |
+| expiry_host                    | string | Expiration UDP messages are sent to        |
+| expiry_port                    | int    | expiry_host:expiry_port, if both defined.  |
+| flusher_min_sleep_time         | float  | Changes from dirty queue are flushed no    |
+|                                |        | faster than this                           |
+

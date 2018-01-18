@@ -1,0 +1,79 @@
+= Сводная инструкция(1)
+
+== NAME
+cb - патч Teligent к CouchBase
+
+== Введение
+
+Перед выполнением команд ниже (статически/динамически), задайте эти переменные bash:
+[source,bash]
+BUCKETS="<список buckets, настройки которых нужно поправить, через пробел>"
+expiry_host=127.127.127.127
+  # на какой хост слать UDP оповещения
+  # порт default 11300 (можно настраивать, но зачем?)
+  # этот адрес специально плохой, чтобы проверить, как пишутся ошибки
+  # (было, что падало в core где-то тут).
+  # если не нужен, уберите из команды ниже
+exp_pager_stime=60
+  # период поиска устаревших элементов, в секундах, default 3600 (1 час)
+flusher_min_sleep_time=0.2
+  # в секундах. сбрасывать очередь на на диск не чаще
+
+== Статически (сразу не срабатывает, после перезагрузки memcached)
+
+сделать один раз, настройки сохраняется в конфиге кластера и копируются на каждый узел автоматически
+(но не применяются автоматически, только с перезагрузкой)
+
+[source,bash]
+date
+for bucket in $BUCKETS
+do
+curl -x '' -u teligent:teligent -XPOST -d \
+ "ns_bucket:update_bucket_props(\"$bucket\", [{extra_config_string, \"exp_pager_stime=$exp_pager_stime;expiry_host=$expiry_host;flusher_min_sleep_time=$flusher_min_sleep_time\"}])." \
+ http://localhost:8091/diag/eval
+done
+
+=== Проверка
+
+Вывод extra_config_string из конфига всех бакетов, где параметр задан (проверка, что изменение записано):
+[source,bash]
+curl -x '' -su teligent:teligent -XPOST -d  "ns_config:get()." http://localhost:8091/diag/eval |grep -B1 extra
+
+== Динамически (сработает сразу, но только на текущем узле)
+
+[source,bash]
+date; for bucket in $BUCKETS; do \
+/opt/couchbase/bin/cbepctl :11210 -b $bucket -p teligent set flush_param flusher_min_sleep_time $flusher_min_sleep_time; \
+done
+
+если flusher_min_sleep_time ругается типа
+[source,bash]
+setting param: flusher_min_sleep_time mts1smp11... Error: Unknown config param
+
+значит patch или не установлен или не вошёл в силу -- перезапустите memcached, вариант: `service couchbase-server restart`
+
+проверка: вывод параметров, действующих на данном узле прямо сейчас:
+[source,bash]
+date
+for bucket in $BUCKETS
+do
+echo $bucket:
+/opt/couchbase/bin/cbstats $host:11210 -b $bucket -p teligent config|grep -e exp_pager -e expiry_ -e flusher_min_sleep_time
+done
+
+== Инструкция по сборке
+
+https://github.com/teligent-ru/ep-engine/blob/teligent/README-TELIGENT.md
+
+== Бинари
+
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
+
+== Установка
+
+[source,bash]
+tar vxzf ~/couchbase-*-patch-to-*.teligent.*.x86_64.tgz -C /
+
+== AUTHOR
+
+Alexander Petrossian (PAF) <alexander.petrossian@teligent.ru>
