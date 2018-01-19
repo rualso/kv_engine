@@ -59,7 +59,7 @@ cd ~/rpmbuild/SPECS
 rpmrebuild -e couchbase-server-enterprise
 :w couchbase-server-community-5.0.1.spec
 #поправить couchbase-server на couchbase-server-community (одно место) и наоборот (одно место)
-
+поправить InstallPrefix строку (не хватает разрыва строки перед вторым InstallPrefix)
 после
 #SOURCERPM:    couchbase-server-5.0.1-5003.src.rpm
 добавить
