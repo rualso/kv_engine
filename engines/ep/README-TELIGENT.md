@@ -122,8 +122,8 @@ git push
 
 ~~~
 cd
-mkdir couchbase.5.0.1.teligent.RHEL7
-cd couchbase.5.0.1.teligent.RHEL7
+mkdir couchbase.$version.teligent.RHEL$os
+cd couchbase.$version.teligent.RHEL$os
 
 function g {
 	url="$1"
@@ -140,15 +140,15 @@ rm -rf kv_engine
 #ключи официальных релизов можно подсматривать в manifest:
 #https://github.com/couchbase/manifest/blob/master/couchbase-server/spock/5.0.1.xml
 
-g ssh://git@github.com/teligent-ru kv_engine 5.0.1.teligent.12
-g ssh://git@github.com/teligent-ru platform 5.0.1.teligent.12
+g ssh://git@github.com/teligent-ru kv_engine $version.teligent.$teligent
+g ssh://git@github.com/teligent-ru platform $version.teligent.$teligent
 ~~~
 
 проталкивать tag так:
 ~~~
-git tag -d 5.0.1.teligent.12
-git push origin :refs/tags/5.0.1.teligent.12
-git tag '5.0.1.teligent.12'
+git tag -d $version.teligent.$teligent
+git push origin :refs/tags/$version.teligent.$teligent
+git tag $version.teligent.$teligent
 git push --tags
 ~~~
 
