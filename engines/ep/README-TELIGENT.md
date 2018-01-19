@@ -58,7 +58,8 @@ cd ~/rpmbuild/SPECS
 #восстановть спеку
 rpmrebuild -e couchbase-server-enterprise
 :w couchbase-server-community-5.0.1.spec
-#поправить couchbase-server на couchbase-server-community (одно место) и наоборот (одно место)
+#поправить couchbase-server на couchbase-server-community (Name: и несколько Provides:)
+#поправить и наоборот (Conflicts:)
 поправить InstallPrefix строку (не хватает разрыва строки перед вторым InstallPrefix)
 после
 #SOURCERPM:    couchbase-server-5.0.1-5003.src.rpm
@@ -77,7 +78,8 @@ tar vxzf %{SOURCE1}
 
 
 scp couchbase-server-community-5.0.1.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
-#теперь доступно http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.spec
+#теперь доступно
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.spec
 
 ---
 
@@ -87,8 +89,6 @@ repo init -u git://github.com/couchbase/manifest -m couchbase-server/spock/5.0.1
 repo sync
 mkdir build
 cd build
-vim /opt/couchbase/bin/couchbase-server
-#ENTERPRISE=false
 export http_proxy=proxy.teligent.ru:1111
 cmake  -G "Unix Makefiles" -D PRODUCT_VERSION:STRING="4.5.1-2844" -D BUILD_ENTERPRISE:BOOL=false -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_INSTALL_PREFIX=/opt/couchbase ..
 #скачает зависимости
@@ -99,21 +99,32 @@ cmake  -G "Unix Makefiles" -D PRODUCT_VERSION:STRING="4.5.1-2844" -D BUILD_ENTER
 make -j6 install
 #займёт полчаса примерно
 -- Installing: /opt/couchbase/share/man/man1/cbdocloader.1
+
+#подправить версию
+vim /opt/couchbase/bin/couchbase-server
+SOFTWARE_VERSION="5.0.1-5003"
+ENTERPRISE=false
+
 #
+os=7
+version=5.0.1
+release=5003
+arch=x86_64
 
 cd /
 mkdir -p ~/rpmbuild/SOURCES
-tar -czvf ~/rpmbuild/SOURCES/couchbase-server-enterprise-to-community-5.0.1-centos7.x86_64.tgz /usr/lib/systemd/system/couchbase-server.service /opt/couchbase
+tar -czvf ~/rpmbuild/SOURCES/couchbase-server-enterprise-to-community-$version-centos$os.$arch.tgz /usr/lib/systemd/system/couchbase-server.service /opt/couchbase
 
 cd ~/rpmbuild/SPECS
-rpmbuild -bs couchbase-server-community-5.0.1.spec #если будет упираться, chown root:root на все файлы о которых ругань
-rpmbuild -bb couchbase-server-community-5.0.1.spec
+rpmbuild -bs couchbase-server-community-$version.spec #если будет упираться, chown root:root на все файлы о которых ругань
+rpmbuild -bb couchbase-server-community-$version.spec
 Записан: /root/rpmbuild/RPMS/x86_64/couchbase-server-community-5.0.1-5003.x86_64.rpm
 
 #залить
-scp /root/rpmbuild/SRPMS/couchbase-server-community-5.0.1*.src.rpm  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
-scp /root/rpmbuild/RPMS/x86_64/couchbase-server-community-5.0.1*.x86_64.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
-#будет доступно http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.x86_64.rpm
+scp /root/rpmbuild/SRPMS/couchbase-server-community-$version-$release.src.rpm  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
+scp /root/rpmbuild/RPMS/$arch/couchbase-server-community-$version-$release.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/$arch/
+#будет доступно
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.x86_64.rpm
 ~~~
 
 merge изменений из couchbase
@@ -158,10 +169,10 @@ g ssh://git@github.com/teligent-ru platform 5.0.1.teligent.12
 
 проталкивать tag так:
 ~~~
-rualpe-ws:ep paf$ git tag -d 5.0.1.teligent.12
-rualpe-ws:ep paf$ git push origin :refs/tags/5.0.1.teligent.12
-rualpe-ws:ep paf$ git tag '5.0.1.teligent.12'
-rualpe-ws:ep paf$ git push --tags
+git tag -d 5.0.1.teligent.12
+git push origin :refs/tags/5.0.1.teligent.12
+git tag '5.0.1.teligent.12'
+git push --tags
 ~~~
 
 запустить общую сборку, среди прочего получится ep.so, libcJSON
@@ -197,6 +208,11 @@ Install the project...
 -- Installing: /opt/couchbase/lib/ep.so
 -- Set runtime path of "/opt/couchbase/lib/ep.so" to "$ORIGIN/../lib:/opt/couchbase/lib:/opt/couchbase/lib/memcached"
 [root@rualpe-vm1 ep-engine]# 
+
+#подправить версию
+vim /opt/couchbase/bin/couchbase-server
+SOFTWARE_VERSION="5.0.1-5003"
+ENTERPRISE=false
 ~~~
 
 
@@ -207,9 +223,10 @@ os=7
 version=5.0.1
 teligent=12
 arch=x86_64
+
 a2x --doctype manpage --format manpage kv_engine/engines/ep/cb.asciidoc -D /usr/share/man/man1/
-tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/lib/{ep.so,libcJSON*} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1
-#scp ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/x86_64/
+tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/lib/{ep.so,libcJSON*} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1 /opt/couchbase/bin/couchbase-server
+scp ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/x86_64/
 ~~~
 
 выложить результат в виде rpm
@@ -221,6 +238,8 @@ os=7
 version=5.0.1
 teligent=12
 release=5003
+arch=x86_64
+
 cd ~/rpmbuild/SPECS/
 cp  couchbase-server-community-$version{,.teligent.$teligent}.spec
 vim couchbase-server-community-$version.teligent.$teligent.spec
@@ -243,7 +262,7 @@ rpmbuild -bb couchbase-server-community-$version.teligent.$teligent.spec
 
 #залить
 scp /root/rpmbuild/SRPMS/couchbase-server-community-$version-$release.teligent.$teligent.src.rpm  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
-scp /root/rpmbuild/RPMS/x86_64/couchbase-server-community-$version-$release.teligent.$teligent.x86_64.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/x86_64/
+scp /root/rpmbuild/RPMS/x86_64/couchbase-server-community-$version-$release.teligent.$teligent.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/$arch/
 ~~~
 
 ссылка для скачивания rpm
