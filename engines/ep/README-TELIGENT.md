@@ -156,6 +156,14 @@ g ssh://git@github.com/teligent-ru kv_engine 5.0.1.teligent.12
 g ssh://git@github.com/teligent-ru platform 5.0.1.teligent.12
 ~~~
 
+проталкивать tag так:
+~~~
+rualpe-ws:ep paf$ git tag -d 5.0.1.teligent.12
+rualpe-ws:ep paf$ git push origin :refs/tags/5.0.1.teligent.12
+rualpe-ws:ep paf$ git tag '5.0.1.teligent.12'
+rualpe-ws:ep paf$ git push --tags
+~~~
+
 запустить общую сборку, среди прочего получится ep.so, libcJSON
 --------------------------------------------------------------------------
 
