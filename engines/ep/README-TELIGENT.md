@@ -122,7 +122,7 @@ merge изменений из couchbase
 ~~~
 cd kv_engine
 git remote add couchbase https://github.com/couchbase/kv_engine.git
-git pull couchbase <имя branch, который хотите подтянуть; пока не разбирался, как подтягивать в ветке до определённого commit, и вообще делал только для ep, не делал для kv_engine>
+git pull couchbase <commit, до которого хотите подтянуть>
 #manifest: https://github.com/couchbase/manifest/blob/master/couchbase-server/spock/5.0.1.xml, искать kv_engine, смотреть upstream:
 #   <project name="kv_engine" revision="5.0.1" groups="kv"/>
 git -am commit
@@ -152,7 +152,8 @@ rm -rf kv_engine
 #ключи официальных релизов можно подсматривать в manifest:
 #https://github.com/couchbase/manifest/blob/master/couchbase-server/spock/5.0.1.xml
 
-g ssh://git@github.com/teligent-ru kv-engine 5.0.1.teligent.12
+g ssh://git@github.com/teligent-ru kv_engine 5.0.1.teligent.12
+g ssh://git@github.com/teligent-ru platform 5.0.1.teligent.12
 ~~~
 
 запустить общую сборку, среди прочего получится ep.so, libcJSON
