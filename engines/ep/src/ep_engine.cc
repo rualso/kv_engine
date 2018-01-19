@@ -509,14 +509,14 @@ protocol_binary_response_status EventuallyPersistentEngine::setFlushParam(
         } else if (strcmp(keyz, "exp_pager_stime") == 0) {
             getConfiguration().setExpPagerStime(std::stoull(valz));
         } else if (strcmp(keyz, "expiry_host") == 0) {
-            e->getConfiguration().setExpiryHost(valz);
+            getConfiguration().setExpiryHost(valz);
         } else if (strcmp(keyz, "expiry_port") == 0) {
             char *ptr = NULL;
             checkNumeric(valz);
             uint64_t vsize = strtoull(valz, &ptr, 10);
             validate(vsize, static_cast<uint64_t>(0),
                      static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()));
-            e->getConfiguration().setExpiryPort((size_t)vsize);
+            getConfiguration().setExpiryPort((size_t)vsize);
         } else if (strcmp(keyz, "exp_pager_initial_run_time") == 0) {
             getConfiguration().setExpPagerInitialRunTime(std::stoll(valz));
         } else if (strcmp(keyz, "access_scanner_enabled") == 0) {
@@ -561,7 +561,7 @@ protocol_binary_response_status EventuallyPersistentEngine::setFlushParam(
         } else if (strcmp(keyz, "flusher_min_sleep_time") == 0) {
             float val = atof(valz);
             if (val >= 0.0 && val <= 10.0) {
-                e->getConfiguration().setFlusherMinSleepTime(val);
+                getConfiguration().setFlusherMinSleepTime(val);
             } else {
                 throw std::runtime_error("Value out of range [0.0-10.0].");
             }

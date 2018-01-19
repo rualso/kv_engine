@@ -19,7 +19,7 @@
 #define SRC_EXPIRY_CHANNEL_H_ 1
 
 #include "config.h"
-#include "stored-value.h"
+#include "item.h"
 
 #include <string>
 
@@ -47,7 +47,7 @@ public:
 	 * Send expiration info
 	 * @param v Stored value to send
 	 */
-	void sendNotification(const std::string& name, const StoredValue* v);
+	void sendNotification(const std::string& name, const Item& it);
 
 	/**
 	 * Close channel, cleanup

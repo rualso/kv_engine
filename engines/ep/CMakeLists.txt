@@ -160,6 +160,7 @@ SET(COLLECTIONS_SOURCE src/collections/filter.cc
                        src/collections/vbucket_manifest_entry.cc)
 
 ADD_LIBRARY(ep_objs OBJECT
+            src/expiry_channel.cc
             src/access_scanner.cc
             src/atomic.cc
             src/bgfetcher.cc

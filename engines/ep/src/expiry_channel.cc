@@ -97,13 +97,9 @@ bool ExpiryChannel::open(const std::string& dstAddr, const int dstPort) {
 	return true;
 }
 
-void ExpiryChannel::sendNotification(const std::string& name, const StoredValue* v) {
+void ExpiryChannel::sendNotification(const std::string& name, const Item& it) {
 	if(!isConnected()) {
-//		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s], but there is no connection (not configured? failed to open?), bailing out...", __func__, name.c_str(), v->getKey().c_str());
-		return;
-	}
-	if(!v) {
-		LOG(EXTENSION_LOG_WARNING, "%s[%s]: called without StoredValue, bailing out...", __func__, name.c_str());
+//		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s], but there is no connection (not configured? failed to open?), bailing out...", __func__, name.c_str(), it.getKey().c_str());
 		return;
 	}
 /*
@@ -118,12 +114,12 @@ void ExpiryChannel::sendNotification(const std::string& name, const StoredValue*
 */
 	cJSON* root = cJSON_CreateObject();
 	cJSON_AddStringToObject(root, "bucket", name.c_str());
-	cJSON_AddStringToObject(root, "id", v->getKey().c_str());
-	cJSON_AddNumberToObject(root, "expiry", v->getExptime());
-	//int64->double possibly loses precision, fatal for 'cas', not doing that for now, not really needed // cJSON_AddNumberToObject(root, "cas", v->getCas());
-	cJSON_AddNumberToObject(root, "flags", v->getFlags());
+	cJSON_AddStringToObject(root, "id", it.getKey().c_str());
+	cJSON_AddNumberToObject(root, "expiry", it.getExptime());
+	//int64->double possibly loses precision, fatal for 'cas', not doing that for now, not really needed // cJSON_AddNumberToObject(root, "cas", it.getCas());
+	cJSON_AddNumberToObject(root, "flags", it.getFlags());
 
-	const value_t& d = v->getValue();
+	const value_t& d = it.getValue();
 	uint8_t t = d->getDataType();
 	const std::string sbody(d->to_s());
 	switch(t) {
@@ -132,7 +128,7 @@ void ExpiryChannel::sendNotification(const std::string& name, const StoredValue*
 			if (jbody)
 				cJSON_AddItemToObject(root, "body", jbody); // assumes responsibility
 			else
-				LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: reported its type as JSON but can not parse it, bailing out...", __func__, name.c_str(), v->getKey().c_str());
+				LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: reported its type as JSON but can not parse it, bailing out...", __func__, name.c_str(), it.getKey().c_str());
 			break;
 		}
 		case PROTOCOL_BINARY_RAW_BYTES: {
@@ -140,7 +136,7 @@ void ExpiryChannel::sendNotification(const std::string& name, const StoredValue*
 			break;
 		}
 		default:
-			LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: can not handle its type[%d] (it's neither RAW=0 nor JSON=1), sending without body", __func__, name.c_str(), v->getKey().c_str(), t);
+			LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: can not handle its type[%d] (it's neither RAW=0 nor JSON=1), sending without body", __func__, name.c_str(), it.getKey().c_str(), t);
 			break;
 	}
 
@@ -148,12 +144,12 @@ void ExpiryChannel::sendNotification(const std::string& name, const StoredValue*
 	cJSON_Delete(root);
 
 	if (!json_cstr) {
-		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: failed to serialize to json. Had good type[%u] (RAW=0, JSON=1), bailing out...", __func__, name.c_str(), v->getKey().c_str(), (unsigned)t);
+		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: failed to serialize to json. Had good type[%u] (RAW=0, JSON=1), bailing out...", __func__, name.c_str(), it.getKey().c_str(), (unsigned)t);
 		return;
 	}
 	size_t json_length = strlen(json_cstr);
 	if (json_length > MAX_PACKET_SIZE) {
-		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: serialized to json_length[%zu], which is more than MAX_PACKET_SIZE[%zu], bailing out...", __func__, name.c_str(), v->getKey().c_str(), json_length, MAX_PACKET_SIZE);
+		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: serialized to json_length[%zu], which is more than MAX_PACKET_SIZE[%zu], bailing out...", __func__, name.c_str(), it.getKey().c_str(), json_length, MAX_PACKET_SIZE);
 		cJSON_Free(json_cstr);
 		return;
 	}
@@ -195,13 +191,13 @@ void ExpiryChannel::sendNotification(const std::string& name, const StoredValue*
 	}
 	if(json_length != static_cast<size_t>(written)) {
 		LOG(EXTENSION_LOG_WARNING, "%s[%s.%s]: json_length[%zu] != written[%zd] errno[%d]",
-			__func__, name.c_str(), v->getKey().c_str(), json_length, written, errno);
+			__func__, name.c_str(), it.getKey().c_str(), json_length, written, errno);
 	}
 
 	cJSON_Free(json_cstr);
 
 //	previous.name = name;
-//	previous.key = v->getKey();
+//	previous.key = it.getKey();
 }
 
 void ExpiryChannel::close() {
