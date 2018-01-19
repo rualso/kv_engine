@@ -211,7 +211,7 @@ Install the project...
 
 #подправить версию
 vim /opt/couchbase/bin/couchbase-server
-SOFTWARE_VERSION="5.0.1-5003"
+SOFTWARE_VERSION="5.0.1-5003.teligent.12"
 ENTERPRISE=false
 ~~~
 
