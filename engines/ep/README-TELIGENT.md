@@ -58,28 +58,25 @@ arch=x86_64
 восстановление rpm спеки
 ---------------------------------
 
-couchbase-server-enterprise-5.0.1-centos7.x86_64.rpm
+https://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm
 поставить rpm *без запуска скриптов!* (тогда не создадутся config.dat и прочие, которые потом будут мешать -- падал erlang)
 ~~~
-rpm -ihv --noscripts /Downloads/couchbase-server-enterprise-$version-centos$os.$arch.rpm
+rpm -ihv --noscripts /Downloads/couchbase-server-community-$version-centos$os.$arch.rpm
 ~~~
 залить
-scp /Downloads/couchbase-server-enterprise-$version-centos$os.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
+scp /Downloads/couchbase-server-community-$version-centos$os.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
 теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-enterprise-4.5.1-centos7.x86_64.rpm
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-centos7.x86_64.rpm
 
 mkdir -p ~/rpmbuild/SPECS
 cd ~/rpmbuild/SPECS
 #восстановть спеку
-rpmrebuild -e couchbase-server-enterprise
-:w couchbase-server-community-5.0.1.spec
-#поправить couchbase-server на couchbase-server-community (Name: и несколько Provides:)
-#поправить и наоборот (Conflicts:)
-поправить InstallPrefix строку (не хватает разрыва строки перед вторым InstallPrefix)
+rpmrebuild -e couchbase-server-community
+поправить Prefix: строку (не хватает разрыва строки перед вторым Prefix)
 после
 #SOURCERPM:    couchbase-server-5.0.1-5003.src.rpm
 добавить
-Source1: couchbase-server-enterprise-to-community-5.0.1-centos7.x86_64.tgz
+Source1: couchbase-server-community-5.0.1-centos7.x86_64.tgz
 
 добавить
 %install
@@ -90,18 +87,15 @@ cd $RPM_BUILD_ROOT
 tar vxzf %{SOURCE1}
 
 перед %files
+:w couchbase-server-community-5.0.1.spec
 
 
 scp couchbase-server-community-$version.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
 #теперь доступно
 http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.spec
 
-vim /opt/couchbase/bin/couchbase-server
-/ENTERPRISE
-заменить TRUE на FALSE
-
 mkdir -p ~/rpmbuild/SOURCES
-tar -czvf ~/rpmbuild/SOURCES/couchbase-server-enterprise-to-community-$version-centos$os.$arch.tgz /opt/couchbase /usr/lib/systemd/system/couchbase-server.service
+tar -czvf ~/rpmbuild/SOURCES/couchbase-server-community-$version-centos$os.$arch.tgz /opt/couchbase /usr/lib/systemd/system/couchbase-server.service
 ~~~
 
 merge изменений из couchbase
@@ -190,7 +184,7 @@ vim couchbase-server-community-$version.teligent.$teligent.spec
 #добавил
 #после Source1
 Source2: couchbase-5.0.1-patch-to-5.0.1.teligent.12-centos7.x86_64.tgz
-#после SOURC1
+#после SOURCE1
 tar vxzf %{SOURCE2}
 #после %files
 %attr(0777, root, root) "/usr/share/man/man1/cb.1"
