@@ -51,7 +51,7 @@ service ntpdate restart
 os=7
 version=5.0.1
 release=5003
-teligent=12
+teligent=13
 arch=x86_64
 ~~~
 
@@ -136,6 +136,10 @@ rm -rf kv_engine
 
 g ssh://git@github.com/teligent-ru kv_engine $version.teligent.$teligent
 g ssh://git@github.com/teligent-ru platform $version.teligent.$teligent
+g ssh://git@github.com/teligent-ru couchstore $version.teligent.$teligent
+cd goproj/src/github.com/couchbase
+rm -rf goxdcr
+g ssh://git@github.com/teligent-ru goxdcr $version.teligent.$teligent
 ~~~
 
 проталкивать tag так:
@@ -180,10 +184,10 @@ cd ~/rpmbuild/SPECS/
 cp  couchbase-server-community-$version{,.teligent.$teligent}.spec
 vim couchbase-server-community-$version.teligent.$teligent.spec
 #поправил на
-#Release:       5003.teligent.12
+#Release:       5003.teligent.13
 #добавил
 #после Source1
-Source2: couchbase-5.0.1-patch-to-5.0.1.teligent.12-centos7.x86_64.tgz
+Source2: couchbase-5.0.1-patch-to-5.0.1.teligent.13-centos7.x86_64.tgz
 #после SOURCE1
 tar vxzf %{SOURCE2}
 #после %files
@@ -191,7 +195,7 @@ tar vxzf %{SOURCE2}
 #залил
 scp couchbase-server-community-$version.teligent.$teligent.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
 #теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.teligent.12.spec
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.teligent.13.spec
 
 rpmbuild -bs couchbase-server-community-$version.teligent.$teligent.spec #если будет упираться, chown root:root на все файлы о которых ругань
 rpmbuild -bb couchbase-server-community-$version.teligent.$teligent.spec
@@ -212,11 +216,11 @@ rpm -ihv ~/rpmbuild/RPMS/$arch/couchbase-server-community-$version-$release.teli
 
 ссылка для скачивания rpm
 -------------------------
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.teligent.12.x86_64.rpm
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.teligent.13.x86_64.rpm
 
 ссылка для скачивания srpm (там spec ещё раз)
 ---------------------------------------------
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1-5003.teligent.12.src.rpmhttp://gigant.teligent.ru/kickstarts/3RD_PARTY/
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1-5003.teligent.13.src.rpmhttp://gigant.teligent.ru/kickstarts/3RD_PARTY/
 
 сводная инструкция на конечном узле
 -----------------------------------
