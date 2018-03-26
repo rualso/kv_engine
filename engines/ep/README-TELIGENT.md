@@ -58,44 +58,42 @@ arch=x86_64
 восстановление rpm спеки
 ---------------------------------
 
-https://packages.couchbase.com/releases/5.0.1/couchbase-server-community-5.0.1-centos7.x86_64.rpm
+https://packages.couchbase.com/releases/5.0.1/couchbase-server-enterprise-5.0.1-centos7.x86_64.rpm
 поставить rpm *без запуска скриптов!* (тогда не создадутся config.dat и прочие, которые потом будут мешать -- падал erlang)
 ~~~
-rpm -ihv --noscripts /Downloads/couchbase-server-community-$version-centos$os.$arch.rpm
+rpm -ihv --noscripts /Downloads/couchbase-server-enterprise-$version-centos$os.$arch.rpm
 ~~~
 залить
-scp /Downloads/couchbase-server-community-$version-centos$os.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
+scp /Downloads/couchbase-server-enterprise-$version-centos$os.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/
 теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-centos7.x86_64.rpm
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-enterprise-5.0.1-centos7.x86_64.rpm
 
 mkdir -p ~/rpmbuild/SPECS
 cd ~/rpmbuild/SPECS
 #восстановть спеку
-rpmrebuild -e couchbase-server-community
+rpmrebuild -e couchbase-server
 поправить Prefix: строку (не хватает разрыва строки перед вторым Prefix)
 после
 #SOURCERPM:    couchbase-server-5.0.1-5003.src.rpm
 добавить
-Source1: couchbase-server-community-5.0.1-centos7.x86_64.tgz
+Source1: couchbase-server-enterprise-5.0.1-centos7.x86_64.tgz
 
-добавить
+перед %files добавить
 %install
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/
 cd $RPM_BUILD_ROOT
 #rpm2cpio %{SOURCE0} | cpio -idmv
 tar vxzf %{SOURCE1}
-
-перед %files
-:w couchbase-server-community-5.0.1.spec
+:w couchbase-server-enterprise-5.0.1.spec
 
 
-scp couchbase-server-community-$version.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
+scp couchbase-server-enterprise-$version.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
 #теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.spec
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-enterprise-5.0.1.spec
 
 mkdir -p ~/rpmbuild/SOURCES
-tar -czvf ~/rpmbuild/SOURCES/couchbase-server-community-$version-centos$os.$arch.tgz /opt/couchbase /usr/lib/systemd/system/couchbase-server.service
+tar -czvf ~/rpmbuild/SOURCES/couchbase-server-enterprise-$version-centos$os.$arch.tgz /opt/couchbase /usr/lib/systemd/system/couchbase-server.service
 ~~~
 
 merge изменений из couchbase
@@ -150,28 +148,27 @@ git tag $version.teligent.$teligent
 git push --tags
 ~~~
 
-запустить частичную сборку, среди прочего получатся ep.so, libcJSON
--------------------------------------------------------------------
+запустить частичную сборку, среди прочего получатся ep.so, libcJSON, libcouchstore.so
+-------------------------------------------------------------------------------------
 
 ~~~
 mkdir build
 cd build
-cmake  -G "Unix Makefiles" -D PRODUCT_VERSION:STRING="$version-$release" -D BUILD_ENTERPRISE:BOOL=false -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_INSTALL_PREFIX=/opt/couchbase ..
+cmake  -G "Unix Makefiles" -D PRODUCT_VERSION:STRING="$version-$release" -D BUILD_ENTERPRISE:BOOL=true -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_INSTALL_PREFIX=/opt/couchbase ..
 
-cd platform
-make install
-cd ..
-cd kv_engine/engines/ep
-make install
-cd ../../..
+cd platform; make install; cd ..
+cd kv_engine/engines/ep; make install; cd ../../..
+cd couchstore; make install; cd ..
+cd goproj/src/github.com/couchbase/goxdcr; make goxdcr/fast; touch all; make install; strip /opt/couchbase/bin/goxdcr; cd ../../../../..
 ~~~
 
 
 собрать patch
 -------------
 ~~~
+cd ..
 a2x --doctype manpage --format manpage kv_engine/engines/ep/cb.asciidoc -D /usr/share/man/man1/
-tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/lib/{ep.so,libcJSON*} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1
+tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/bin/goxdcr /opt/couchbase/lib/{ep.so,libcJSON*,libcouchstore.so} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1
 scp ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/x86_64/
 ~~~
 
@@ -181,8 +178,8 @@ scp ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-c
 взял spec из сборки community vanilla версии в rpm (см. выше)
 ~~~
 cd ~/rpmbuild/SPECS/
-cp  couchbase-server-community-$version{,.teligent.$teligent}.spec
-vim couchbase-server-community-$version.teligent.$teligent.spec
+cp  couchbase-server-enterprise-$version{,.teligent.$teligent}.spec
+vim couchbase-server-enterprise-$version.teligent.$teligent.spec
 #поправил на
 #Release:       5003.teligent.13
 #добавил
@@ -193,34 +190,36 @@ tar vxzf %{SOURCE2}
 #после %files
 %attr(0777, root, root) "/usr/share/man/man1/cb.1"
 #залил
-scp couchbase-server-community-$version.teligent.$teligent.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
+scp couchbase-server-enterprise-$version.teligent.$teligent.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
 #теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.teligent.13.spec
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-enterprise-5.0.1.teligent.13.spec
 
-rpmbuild -bs couchbase-server-community-$version.teligent.$teligent.spec #если будет упираться, chown root:root на все файлы о которых ругань
-rpmbuild -bb couchbase-server-community-$version.teligent.$teligent.spec
+rpmbuild -bs couchbase-server-enterprise-$version.teligent.$teligent.spec #если будет упираться, chown root:root на все файлы о которых ругань
+rpmbuild -bb couchbase-server-enterprise-$version.teligent.$teligent.spec
 
 #залить
-scp /root/rpmbuild/SRPMS/couchbase-server-community-$version-$release.teligent.$teligent.src.rpm  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
-scp /root/rpmbuild/RPMS/x86_64/couchbase-server-community-$version-$release.teligent.$teligent.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/$arch/
+#scp /root/rpmbuild/SRPMS/couchbase-server-$version-$release.teligent.$teligent.src.rpm  alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
+scp /root/rpmbuild/RPMS/x86_64/couchbase-server-$version-$release.teligent.$teligent.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/$arch/
+#будет доступно
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-5.0.1-5003.teligent.13.x86_64.rpm
 ~~~
 
 проверка полученной rpm
 -----------------------
 ~~~
 rpm -e couchbase-server
-#rpm -e couchbase-server-community #иногда так надо
+#rpm -e couchbase-server-enterprise #иногда так надо
 rm -rf /opt/couchbase
-rpm -ihv ~/rpmbuild/RPMS/$arch/couchbase-server-community-$version-$release.teligent.$teligent.$arch.rpm
+rpm -ihv ~/rpmbuild/RPMS/$arch/couchbase-server-enterprise-$version-$release.teligent.$teligent.$arch.rpm
 ~~~
 
 ссылка для скачивания rpm
 -------------------------
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.teligent.13.x86_64.rpm
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-enterprise-5.0.1-5003.teligent.13.x86_64.rpm
 
 ссылка для скачивания srpm (там spec ещё раз)
 ---------------------------------------------
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1-5003.teligent.13.src.rpmhttp://gigant.teligent.ru/kickstarts/3RD_PARTY/
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-enterprise-5.0.1-5003.teligent.13.src.rpmhttp://gigant.teligent.ru/kickstarts/3RD_PARTY/
 
 сводная инструкция на конечном узле
 -----------------------------------
