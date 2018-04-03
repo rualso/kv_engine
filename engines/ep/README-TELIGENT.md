@@ -51,7 +51,7 @@ service ntpdate restart
 os=7
 version=5.0.1
 release=5003
-teligent=14
+teligent=15
 arch=x86_64
 ~~~
 
@@ -190,10 +190,10 @@ vim couchbase-server-community-$version.teligent.$teligent.spec
 +Provides:      couchbase-server-community = 5.0.1-5003
 +Provides:      couchbase-server-community(x86-64) = 5.0.1-5003
 #поправил на
-#Release:       5003.teligent.14
+#Release:       5003.teligent.15
 #добавил
 #после Source1
-Source2: couchbase-5.0.1-patch-to-5.0.1.teligent.14-centos7.x86_64.tgz
+Source2: couchbase-5.0.1-patch-to-5.0.1.teligent.15-centos7.x86_64.tgz
 #после SOURCE1
 tar vxzf %{SOURCE2}
 #после %files
@@ -201,7 +201,7 @@ tar vxzf %{SOURCE2}
 #залил
 scp couchbase-server-community-$version.teligent.$teligent.spec alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/SRPM/
 #теперь доступно
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.teligent.14.spec
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/SRPM/couchbase-server-community-5.0.1.teligent.15.spec
 
 rpmbuild -bb couchbase-server-community-$version.teligent.$teligent.spec
 scp /root/rpmbuild/RPMS/x86_64/couchbase-server-community-$version-$release.teligent.$teligent.$arch.rpm alexander.petrossian@gigant:/var/www/kickstarts/3RD_PARTY/couchbase/RHEL$os/$arch/
@@ -218,7 +218,7 @@ rpm -ihv ~/rpmbuild/RPMS/$arch/couchbase-server-community-$version-$release.teli
 
 ссылка для скачивания rpm
 -------------------------
-http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.teligent.14.x86_64.rpm
+http://gigant.teligent.ru/kickstarts/3RD_PARTY/couchbase/RHEL7/x86_64/couchbase-server-community-5.0.1-5003.teligent.15.x86_64.rpm
 
 сводная инструкция на конечном узле
 -----------------------------------
