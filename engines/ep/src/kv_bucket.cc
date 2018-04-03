@@ -2625,8 +2625,7 @@ void KVBucket::setExpiryPort(size_t val) {
 
 void KVBucket::setFlusherMinSleepTime(float val) {
     for (uint16_t i = 0; i < vbMap.shards.size(); ++i) {
-        Flusher *flusher = vbMap.shards[i]->getFlusher();
-        if(flusher) // EphemeralBucket has none
+        if(Flusher *flusher = vbMap.shards[i]->getFlusher()) // EphemeralBucket has none
             flusher->setMinSleepTime(val);
     }
 }
