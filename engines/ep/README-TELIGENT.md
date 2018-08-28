@@ -51,7 +51,7 @@ service ntpdate restart
 os=7
 version=5.0.1
 release=5003
-teligent=15
+teligent=16
 arch=x86_64
 ~~~
 
@@ -157,6 +157,7 @@ cd build
 cmake  -G "Unix Makefiles" -D PRODUCT_VERSION:STRING="$version-$release" -D BUILD_ENTERPRISE:BOOL=true -D CMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_INSTALL_PREFIX=/opt/couchbase ..
 
 cd platform; make install; cd ..
+cd kv_engine/daemon; make install; cd ../..
 cd kv_engine/engines/ep; make install; cd ../../..
 cd couchstore; make install; cd ..
 cd goproj/src/github.com/couchbase/goxdcr; make goxdcr/fast; touch all; make install; strip /opt/couchbase/bin/goxdcr; cd ../../../../..
@@ -168,7 +169,7 @@ cd goproj/src/github.com/couchbase/goxdcr; make goxdcr/fast; touch all; make ins
 ~~~
 cd ..
 a2x --doctype manpage --format manpage kv_engine/engines/ep/cb.asciidoc -D /usr/share/man/man1/
-tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/bin/goxdcr /opt/couchbase/lib/{ep.so,libcJSON*,libcouchstore.so} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1
+tar -czvf ~/rpmbuild/SOURCES/couchbase-$version-patch-to-$version.teligent.$teligent-centos$os.$arch.tgz /opt/couchbase/bin/{memcached,goxdcr} /opt/couchbase/lib/{ep.so,libcJSON*,libcouchstore.so} /opt/couchbase/lib/python/cbepctl /usr/share/man/man1/cb.1
 ~~~
 
 выложить результат в виде rpm
