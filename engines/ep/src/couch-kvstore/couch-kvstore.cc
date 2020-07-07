@@ -1955,12 +1955,12 @@ couchstore_error_t CouchKVStore::saveDocs(uint16_t vbid,
         }
 
         hrtime_t cs_begin = gethrtime();
-        errCode = couchstore_commit(db.getDb());
+        errCode = couchstore_commit_nosync(db.getDb());
         st.commitHisto.add((gethrtime() - cs_begin) / 1000);
         if (errCode) {
             logger.log(
                     EXTENSION_LOG_WARNING,
-                    "CouchKVStore::saveDocs: couchstore_commit error:%s [%s]",
+                    "CouchKVStore::saveDocs: couchstore_commit_nosync error:%s [%s]",
                     couchstore_strerror(errCode),
                     couchkvstore_strerrno(db.getDb(), errCode).c_str());
             return errCode;
