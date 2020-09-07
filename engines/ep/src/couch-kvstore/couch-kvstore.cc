@@ -2050,14 +2050,14 @@ couchstore_error_t CouchKVStore::saveDocs(uint16_t vbid,
         }
 
         auto cs_begin = ProcessClock::now();
-        errCode = couchstore_commit(db);
+        errCode = couchstore_commit_nosync(db);
         st.commitHisto.add(
                 std::chrono::duration_cast<std::chrono::microseconds>(
                         ProcessClock::now() - cs_begin));
         if (errCode) {
             logger.log(
                     EXTENSION_LOG_WARNING,
-                    "CouchKVStore::saveDocs: couchstore_commit error:%s [%s]",
+                    "CouchKVStore::saveDocs: couchstore_commit_nosync error:%s [%s]",
                     couchstore_strerror(errCode),
                     couchkvstore_strerrno(db, errCode).c_str());
             return errCode;
